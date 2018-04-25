@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div id="title"></div>
+    <div id="content"></div>
+    <script>
+        let data = {
+            title:{
+                title:123,
+                color:'pink'
+            },
+            content:{
+                title:'this is derive redux',
+                color:'yellow'
+            }
+        }
+
+        /*
+        state是数据，changer是规则
+        */
+        function createStore(state,changer){
+            let getState = () => state;
+            //用来存订阅的函数
+            let listeners = [];
+            // 订阅函数
+            let subscribe = (listener) => listeners.push(listener)
+            let dispatch = (action) => {//action存要修改的属性和要改为的值的对象
+                //重新写state   changer函数返回的是修改之后的数据 
+                state = changer(state,action);
+                // 指向所有的函数
+                listeners.forEach((item) => item());
+            }
+            return {getState,dispatch,subscribe}
+        }
+        
+        /*c函数是规则
+            每次都要返回新的对象  规则一定是纯函数
+            state是要被修改的对象
+            action是要修改的属性和要改为的值，也是一个对象形式
+        */
+
+        function c(state,action){
+            switch(action.type){
+                case 'change-title-title':
+                    return {
+                        ...state,
+                        title:{
+                            ...state.title,
+                            title:action.title
+                        }
+                    }
+                break;
+                case 'change-title-color':
+                    return {
+                        ...state,
+                        title:{
+                            ...state.title,
+                            color:action.color
+                        }
+                    }
+                break;
+                default:
+                    return state;
+            }
+        }
+
+        //容器 把数据和规则结合在一起
+        let store = createStore(data,c)
+
+        //订阅  dispatch执行的之后会执行订阅里面的内容
+        store.subscribe(()=>{
+            let newData = store.getState();//调用dispatch之后，会触发changer这个函数，得到新数据
+            renderApp(newData,oldData);
+            //保存一下，保存的是同一个对象
+            oldData = newData;
+        })
+
+        let oldData = store.getState();//初始对象  第一次就是data
+  
+        //初始渲染 oldData就是最新的数据，之前的数据没有
+        renderApp(oldData,{})
+
+        function renderApp(newData,oldData){
+            renderTitle(newData.title,oldData.title)
+            renderContent(newData.content,oldData.content)
+        }
+
+        /*
+            如果没被修改的对象，是不渲染的
+            渲染时候，传入俩个对象：
+                newData，oldData
+                修改前    修改后
+        */
+        function renderTitle(newTitleData,oldTitileData){
+            console.log('触发了renderTitle',newTitleData===oldTitileData)
+            if(newTitleData===oldTitileData) return;
+            let title = document.getElementById('title');
+            console.log(title)
+            title.innerHTML = newTitleData.title
+            title.style.color = newTitleData.color;
+        }
+
+        function renderContent(newContentData,oldContentData){
+            console.log('触发了renderContent',newContentData===oldContentData)
+            if(newContentData===oldContentData) return;
+            let Content = document.getElementById('content');
+            console.log(Content)
+            Content.innerHTML = newContentData.title
+            Content.style.color = newContentData.color;
+        }
+
+        document.onclick = function(){
+            store.dispatch({
+                type:'change-title-title',
+                title:'我是改之后的title'
+            })
+        }
+    </script>
+</body>
+</html>
