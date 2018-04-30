@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" href="./index.css">
+	</head>
+	<script src="./src/babel.min.js"></script>
+	<script src="./src/react.js"></script>
+	<script src="./src/react-dom.js"></script>
+	<script>
+	</script>
+	<body>
+		<div class="wrap" id="root"></div>
+		<script type="text/babel">
+			let list =[
+					{
+						title:'欢迎',
+						id:1,
+						show:true
+					},
+					{
+						title:'welcome~',
+						id:2,
+						show:true
+					},
+				]
+			
+			class App extends React.Component {
+				constructor(props){
+					super(props);
+					this.state={
+						list:list,
+					}
+				}
+				//点击编辑按钮
+				toEditHandle(item,index){
+					// 把编辑之前的内容存一下，点击取消的时候可以用
+					this.setState({
+						beforeEditTitle:item.title
+					})
+					item.show = false;
+					this.setState({
+						list:[...this.state.list]
+					},()=>{
+						let inp = this.refs['editBox'+ index];
+						inp.focus();
+					})
+				}
+				
+				//输入框
+				changeValueHandle(item,ev){
+					item.title = ev.target.value;
+					this.setState({
+						list:[...this.state.list]
+					})
+				}
+				
+				//确定
+				okHandle(item){
+					if(item.title.trim()===''){
+						alert('输入内容不能为空哦')
+						return;
+					}
+					item.show = true;
+					this.setState({
+						list:[...this.state.list]
+					})
+				}
+
+				//取消
+				cancelHandle(item){
+					if(item.title.trim()===''){
+						item.title = this.state.beforeEditTitle;
+					}
+					item.show = true;
+					this.setState({
+						list:[...this.state.list]
+					});
+					this.setState({
+						beforeEditTitle:''
+					})
+				}
+				render() { 
+					let {list} = this.state
+					return(<div className="text">
+						{
+							list.map((item,index)=>{
+								return <div  key={item.id} className="text_i">
+									<div 
+										className="show"
+										style={{display:item.show?'block':'none'}}
+									>
+										<p className="info">{item.title}</p>
+										<a 
+											href="javascript:;" 
+											className="btn"
+											onClick={this.toEditHandle.bind(this,item,index)}
+										></a>
+									</div>
+									<div 
+										className="alter"
+										style={{display:item.show?'none':'block'}}
+									>
+										<input 
+											type="text"  
+											ref={'editBox'+index}
+											// 受控表单控件必须写value和onChange
+											value={item.title}
+											onChange={this.changeValueHandle.bind(this,item)}
+										/>
+										<span 
+											className="sure"
+											onClick={this.okHandle.bind(this,item)}
+										>确定</span>
+										<span 
+											className="cancel"
+											onClick={this.cancelHandle.bind(this,item)}
+										>取消</span>
+									</div>
+								</div>
+							})
+						}
+					</div>)
+				}
+			}
+			
+			ReactDOM.render(
+				<App/>,
+				document.getElementById('root')
+			)
+
+			
+		</script>
+	</body>
+
+</html>
